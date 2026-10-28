@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Tarik Tambang Jaringan - SMK Kelas 10</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    min-height: 100vh;
+    color: #fff;
+    padding: 20px;
+  }
+  h1 { text-align: center; margin-bottom: 10px; font-size: 2em; }
+  .subtitle { text-align: center; margin-bottom: 20px; opacity: 0.8; }
+
+  .arena {
+    max-width: 900px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 25px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+
+  .teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .team {
+    text-align: center;
+    padding: 15px 25px;
+    border-radius: 15px;
+    min-width: 180px;
+  }
+  .team.siswa { background: rgba(46,204,113,0.25); border: 2px solid #2ecc71; }
+  .team.komputer { background: rgba(231,76,60,0.25); border: 2px solid #e74c3c; }
+  .team h2 { font-size: 1.3em; margin-bottom: 5px; }
+  .team .icon { font-size: 2.5em; }
+  .team .score { font-size: 1.1em; margin-top: 5px; font-weight: bold; }
+
+  .tug-of-war {
+    position: relative;
+    height: 120px;
+    background: linear-gradient(to bottom, #87ceeb 0%, #87ceeb 60%, #8b4513 60%, #8b4513 100%);
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+  }
+  .center-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: rgba(255,255,0,0.6);
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  .center-line::after {
+    content: '🏁';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5em;
+  }
+  .rope {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(to right, #8b4513, #d2691e, #8b4513);
+    border-radius: 4px;
+    transform: translateY(-50%);
+  }
+  .flag {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5em;
+    transition: left 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+  .player {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 3em;
+    transition: left 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .player.siswa { left: 10%; }
+  .player.komputer { right: 10%; }
+
+  .question-box {
+    background: rgba(0,0,0,0.35);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+  }
+  .question-number {
+    color: #f1c40f;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .question-text {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .option {
+    padding: 12px 15px;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #fff;
+    font-size: 1em;
+    text-align: left;
+  }
+  .option:hover:not(:disabled) {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+  }
+  .option:disabled { cursor: not-allowed; opacity: 0.7; }
+  .option.correct { background: rgba(46,204,113,0.6); border-color: #2ecc71; }
+  .option.wrong { background: rgba(231,76,60,0.6); border-color: #e74c3c; }
+
+  .feedback {
+    text-align: center;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    font-weight: bold;
+    min-height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+  }
+  .feedback.correct { background: rgba(46,204,113,0.3); }
+  .feedback.wrong { background: rgba(231,76,60,0.3); }
+
+  .progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  .dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.4);
+  }
+  .dot.done { background: #2ecc71; border-color: #27ae60; }
+  .dot.current { background: #f1c40f; border-color: #f39c12; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3);} }
+
+  .btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .btn:hover { transform: scale(1.05); }
+
+  .result-screen {
+    text-align: center;
+    padding: 30px;
+  }
+  .result-screen h2 { font-size: 2.5em; margin-bottom: 15px; }
+  .result-screen .emoji { font-size: 5em; margin: 20px 0; }
+  .result-screen p { font-size: 1.2em; margin-bottom: 10px; }
+
+  @media (max-width: 600px) {
+    .options { grid-template-columns: 1fr; }
+    .team { min-width: 120px; padding: 10px 15px; }
+    .team h2 { font-size: 1em; }
+    .player { font-size: 2em; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🪢 Tarik Tambang Jaringan 🪢</h1>
+<p class="subtitle">Uji pemahamanmu tentang Jaringan Komputer!</p>
+
+<div class="arena" id="arena">
+  <div class="teams">
+    <div class="team siswa">
+      <div class="icon">🧑‍🎓</div>
+      <h2>Siswa</h2>
+      <div class="score">Benar: <span id="skorSiswa">0</span></div>
+    </div>
+    <div class="team komputer">
+      <div class="icon">🤖</div>
+      <h2>Komputer</h2>
+      <div class="score">Salah: <span id="skorKomputer">0</span></div>
+    </div>
+  </div>
+
+  <div class="tug-of-war">
+    <div class="center-line"></div>
+    <div class="rope"></div>
+    <div class="player siswa">🧑‍🎓</div>
+    <div class="player komputer">🤖</div>
+    <div class="flag" id="flag">🎗️</div>
+  </div>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="gameArea">
+    <div class="question-box">
+      <div class="question-number" id="qNumber">Pertanyaan 1 dari 5</div>
+      <div class="question-text" id="qText"></div>
+      <div class="options" id="options"></div>
+    </div>
+    <div class="feedback" id="feedback">Pilih jawabanmu untuk mulai menarik tali!</div>
+  </div>
+
+  <div id="resultArea" style="display:none;"></div>
+</div>
+
+<script>
+  const pertanyaan = [
+    {
+      q: "Apa kepanjangan dari LAN dalam jaringan komputer?",
+      options: ["Local Area Network", "Large Area Network", "Linear Access Network", "Long Area Node"],
+      answer: 0
+    },
+    {
+      q: "Perangkat jaringan yang berfungsi menghubungkan dua jaringan berbeda (misal LAN ke Internet) adalah...",
+      options: ["Switch", "Hub", "Router", "Repeater"],
+      answer: 2
+    },
+    {
+      q: "Topologi jaringan di mana semua komputer terhubung pada satu kabel pusat disebut topologi...",
+      options: ["Star", "Ring", "Bus", "Mesh"],
+      answer: 2
+    },
+    {
+      q: "Alamat unik yang dimiliki setiap perangkat di jaringan internet disebut...",
+      options: ["MAC Address", "IP Address", "Email Address", "Home Address"],
+      answer: 1
+    },
+    {
+      q: "Protokol yang digunakan untuk mengirim halaman web dari server ke browser adalah...",
+      options: ["FTP", "SMTP", "HTTP/HTTPS", "POP3"],
+      answer: 2
+    }
+  ];
+
+  let currentIndex = 0;
+  let skorSiswa = 0;
+  let skorKomputer = 0;
+  // posisi flag: -5 (kiri/siswa menang) sampai +5 (kanan/komputer menang)
+  let posisi = 0;
+
+  const qNumber = document.getElementById('qNumber');
+  const qText = document.getElementById('qText');
+  const optionsEl = document.getElementById('options');
+  const feedback = document.getElementById('feedback');
+  const flag = document.getElementById('flag');
+  const progressEl = document.getElementById('progress');
+  const gameArea = document.getElementById('gameArea');
+  const resultArea = document.getElementById('resultArea');
+
+  function renderProgress() {
+    progressEl.innerHTML = '';
+    for (let i = 0; i < pertanyaan.length; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      if (i < currentIndex) dot.classList.add('done');
+      else if (i === currentIndex) dot.classList.add('current');
+      progressEl.appendChild(dot);
+    }
+  }
+
+  function renderQuestion() {
+    const p = pertanyaan[currentIndex];
+    qNumber.textContent = `Pertanyaan ${currentIndex + 1} dari ${pertanyaan.length}`;
+    qText.textContent = p.q;
+    optionsEl.innerHTML = '';
+    feedback.className = 'feedback';
+    feedback.textContent = 'Pilih jawabanmu untuk mulai menarik tali!';
+
+    p.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option';
+      btn.textContent = String.fromCharCode(65 + idx) + '. ' + opt;
+      btn.onclick = () => jawab(idx, btn);
+      optionsEl.appendChild(btn);
+    });
+    renderProgress();
+  }
+
+  function updateTali() {
+    // posisi -5 = 10% kiri, +5 = 90% kanan, 0 = 50%
+    const persen = 50 + (posisi * 8); // setiap poin = 8%
+    flag.style.left = persen + '%';
+    document.getElementById('skorSiswa').textContent = skorSiswa;
+    document.getElementById('skorKomputer').textContent = skorKomputer;
+  }
+
+  function jawab(idx, btn) {
+    const p = pertanyaan[currentIndex];
+    const buttons = optionsEl.querySelectorAll('.option');
+    buttons.forEach(b => b.disabled = true);
+
+    if (idx === p.answer) {
+      btn.classList.add('correct');
+      skorSiswa++;
+      posisi--;
+      feedback.className = 'feedback correct';
+      feedback.innerHTML = `✅ <span style="margin-left:8px;">BENAR! Tali bergerak ke arah siswa 🎉</span>`;
+    } else {
+      btn.classList.add('wrong');
+      buttons[p.answer].classList.add('correct');
+      skorKomputer++;
+      posisi++;
+      feedback.className = 'feedback wrong';
+      feedback.innerHTML = `❌ <span style="margin-left:8px;">SALAH! Tali bergerak ke arah komputer 🤖</span>`;
+    }
+
+    updateTali();
+    renderProgress();
+
+    setTimeout(() => {
+      currentIndex++;
+      if (currentIndex < pertanyaan.length) {
+        renderQuestion();
+      } else {
+        tampilkanHasil();
+      }
+    }, 2000);
+  }
+
+  function tampilkanHasil() {
+    gameArea.style.display = 'none';
+    resultArea.style.display = 'block';
+
+    let emoji, judul, pesan, warna;
+    if (skorSiswa === 5) {
+      emoji = '🏆';
+      judul = 'SISWA MENANG!';
+      pesan = 'Luar biasa! Kamu menjawab SEMUA pertanyaan dengan benar. Tali berhasil ditarik sepenuhnya ke sisimu!';
+      warna = '#2ecc71';
+    } else if (skorKomputer === 5) {
+      emoji = '😵';
+      judul = 'KOMPUTER MENANG!';
+      pesan = 'Sayang sekali, semua jawabanmu salah. Tali tertarik ke sisi komputer. Ayo pelajari lagi materinya!';
+      warna = '#e74c3c';
+    } else if (skorSiswa > skorKomputer) {
+      emoji = '🎊';
+      judul = 'SISWA MENANG!';
+      pesan = `Hebat! Kamu menjawab ${skorSiswa} dari 5 pertanyaan dengan benar.`;
+      warna = '#2ecc71';
+    } else if (skorSiswa < skorKomputer) {
+      emoji = '💪';
+      judul = 'KOMPUTER MENANG!';
+      pesan = `Kamu menjawab ${skorSiswa} benar dari 5 soal. Pelajari lagi ya!`;
+      warna = '#e74c3c';
+    } else {
+      emoji = '🤝';
+      judul = 'SERI!';
+      pesan = `Kalian sama-sama kuat! Skor akhir: ${skorSiswa} - ${skorKomputer}`;
+      warna = '#f1c40f';
+    }
+
+    resultArea.innerHTML = `
+      <div class="result-screen" style="background:${warna}22; border-radius:15px; border:2px solid ${warna};">
+        <div class="emoji">${emoji}</div>
+        <h2 style="color:${warna};">${judul}</h2>
+        <p>${pesan}</p>
+        <p style="margin-top:15px;">Skor Akhir: <b style="color:#2ecc71;">Siswa ${skorSiswa}</b> - <b style="color:#e74c3c;">${skorKomputer} Komputer</b></p>
+        <button class="btn" onclick="location.reload()">🔄 Main Lagi</button>
+      </div>
+    `;
+  }
+
+  // Inisialisasi
+  renderQuestion();
+  updateTali();
+</script>
+
+</body>
+</html>
